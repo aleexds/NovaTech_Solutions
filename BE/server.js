@@ -122,3 +122,95 @@ app.post('/api/chat/hr', async (req, res) => {
         });
     }
 });
+
+// Ruta para simular el inicio de sesión y obtener el perfil del colaborador
+app.post('/api/auth/login', async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({ exito: false, error: 'El correo electrónico es obligatorio.' });
+        }
+
+        // Simulamos la base de datos de los 180 colaboradores de NovaTech Solutions S.A.
+        // Si el correo es de RRHH, le damos privilegios especiales; si no, rol de colaborador estándar.
+        let colaborador = {};
+
+        if (email.toLowerCase().includes('sofia.vargas') || email.toLowerCase().includes('rrhh')) {
+            colaborador = {
+                id: 'EMP-001',
+                nombre: 'Sofía Vargas',
+                correo: email,
+                puesto: 'Gerente de RRHH',
+                departamento: 'Recursos Humanos',
+                rol: 'admin_rrhh',
+                permisosEdicion: true
+            };
+        } else {
+            // Colaborador estándar de NovaTech
+            colaborador = {
+                id: 'EMP-' + Math.floor(100 + Math.random() * 900),
+                nombre: email.split('@')[0].replace('.', ' ').toUpperCase(),
+                correo: email,
+                puesto: 'Desarrollador / Especialista Técnico',
+                departamento: 'Tecnología',
+                rol: 'colaborador',
+                permisosEdicion: false
+            };
+        }
+
+        res.json({
+            exito: true,
+            mensaje: 'Autenticación exitosa',
+            usuario: colaborador
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            exito: false,
+            error: error.message
+        });
+    }
+});
+
+const { supabase } = require('./config/supabaseClient');
+
+// Ruta para listar las políticas de RRHH disponibles en la base de datos vectorial
+app.get('/api/politicas/lista', async (req, res) => {
+    try {
+        // Obtenemos los documentos únicos almacenados en Supabase
+        const { data, error } = await supabase
+            .from('documentos_vectorial')
+            .select('nombre_documento, version, enlace_drive')
+            .order('nombre_documento', { ascending: true });
+
+        if (error) throw error;
+
+        // Filtramos para mostrar una lista limpia sin duplicados por chunks
+        const politicasUnicas = [];
+        const nombresVistos = new Set();
+
+        for (const item of (data || [])) {
+            if (!nombresVistos.has(item.nombre_documento)) {
+                nombresVistos.add(item.nombre_documento);
+                politicasUnicas.push({
+                    nombre: item.nombre_documento,
+                    version: item.version || '1.0',
+                    enlaceDrive: item.enlace_drive
+                });
+            }
+        }
+
+        res.json({
+            exito: true,
+            totalPoliticas: politicasUnicas.length,
+            politicas: politicasUnicas
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            exito: false,
+            error: error.message
+        });
+    }
+});
