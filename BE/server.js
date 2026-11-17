@@ -81,3 +81,18 @@ app.get('/api/drive/leer-contenido', async (req, res) => {
 app.listen(PORT, () => {
     console.log(`Servidor de NovaTech corriendo en http://localhost:${PORT}`);
 });
+
+const { sincronizarDriveASupabase } = require('./syncService');
+
+// Ruta para ejecutar la sincronización de Drive a Supabase
+app.get('/api/drive/sincronizar', async (req, res) => {
+    try {
+        const resultado = await sincronizarDriveASupabase();
+        res.json(resultado);
+    } catch (error) {
+        res.status(500).json({
+            exito: false,
+            error: error.message
+        });
+    }
+});

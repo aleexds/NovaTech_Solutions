@@ -1,6 +1,6 @@
 const { google } = require('googleapis');
 const path = require('path');
-const pdfParse = require('pdf-parse');
+const { PDFParse } = require('pdf-parse');
 require('dotenv').config();
 
 const KEYFILEPATH = path.resolve(__dirname, 'config', 'credentials.json');
@@ -59,8 +59,13 @@ async function leerContenidoArchivo(fileId, mimeType) {
             }, { responseType: 'arraybuffer' });
             
             const buffer = Buffer.from(res.data);
-            const pdfData = await pdfParse(buffer);
-            return pdfData.text;
+            const parser = new PDFParse({ data: buffer });
+            try {
+                const pdfData = await parser.getText();
+                return pdfData.text;
+            } finally {
+                await parser.destroy();
+            }
         }
 
         // 4. Otros archivos de texto plano
@@ -72,7 +77,7 @@ async function leerContenidoArchivo(fileId, mimeType) {
 
     } catch (error) {
         console.error(`Error al leer el archivo ${fileId} (${mimeType}):`, error.message);
-        return '';
+        throw error;
     }
 }
 
