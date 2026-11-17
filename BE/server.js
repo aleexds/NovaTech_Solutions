@@ -96,3 +96,29 @@ app.get('/api/drive/sincronizar', async (req, res) => {
         });
     }
 });
+
+const { procesarMensajeAgente } = require('./src/agent/hrAgentCoordinator');
+
+// Ruta para chatear con el Agente de RRHH de NovaTech
+app.post('/api/chat/hr', async (req, res) => {
+    try {
+        const { sessionId = 'default-session', mensaje } = req.body;
+
+        if (!mensaje) {
+            return res.status(400).json({ exito: false, error: 'El campo mensaje es obligatorio.' });
+        }
+
+        const resultado = await procesarMensajeAgente(sessionId, mensaje);
+        res.json({
+            exito: true,
+            sessionId: resultado.sessionId,
+            respuesta: resultado.respuesta
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            exito: false,
+            error: error.message
+        });
+    }
+});
