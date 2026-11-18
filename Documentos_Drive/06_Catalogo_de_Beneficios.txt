@@ -1,0 +1,25 @@
+# CATÁLOGO DE BENEFICIOS CORPORATIVOS
+**Empresa:** NovaTech Solutions S.A.  
+**Versión:** 2.0  
+**Fecha de vigencia:** 1 de enero de 2026  
+**Responsable:** Beneficios & Experiencia del Colaborador  
+**Código del documento:** POL-RRHH-006  
+
+---
+
+## 1. Seguro Médico Privado Internacional
+- Todo colaborador contratado cuenta desde su primer día laboral con una póliza colectiva de seguro médico privado (gastos médicos mayores) financiada al **100% por NovaTech**.
+- **Cobertura:** Consultas médicas, hospitalización, cirugías, maternidad, cobertura odontológica y oftalmológica anual de hasta $400 USD.
+- Posibilidad de afiliar dependientes directos (cónyuge e hijos) con tarifa corporativa preferencial con subsidio empresarial del 50%.
+
+## 2. Asociación Solidarista y Fondo de Ahorro Mutuo
+- NovaTech aporta un **5.33% patronal mensual** sobre el salario de cada afiliado, destinado a su fondo de cesantía y ahorro solidario.
+- Acceso a líneas de crédito preferenciales para vivienda, refundición de deudas, estudio y vehículo tras cumplir 6 meses de membresía.
+
+## 3. Presupuesto de Capacitación y Certificaciones Técnicas
+- Asignación de hasta **$1,500 USD anuales por colaborador** para cursos técnicos, idiomas, conferencias y certificaciones oficiales (AWS, Azure, GCP, PMP, Scrums, Deep Learning).
+- Reembolso del 100% del costo del examen de certificación tras su aprobación.
+
+## 4. Días Personales de Bienestar (Wellness Days)
+- Cada colaborador dispone de **2 días libres al año (Wellness Days)** remunerados para trámites personales o recarga de energía mental, adicionales a su saldo vacacional.
+- Día libre de cumpleaños: El colaborador tiene libre el día de su natalicio o el viernes inmediato si cae en fin de semana.

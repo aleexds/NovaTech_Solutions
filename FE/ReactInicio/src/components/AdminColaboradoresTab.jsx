@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Search, Loader2, Mail, Shield, UserCheck, Briefcase, Building2, Calendar } from 'lucide-react';
 
 export default function AdminColaboradoresTab() {
@@ -6,22 +6,23 @@ export default function AdminColaboradoresTab() {
   const [cargando, setCargando] = useState(true);
   const [busqueda, setBusqueda] = useState('');
 
-  useEffect(() => {
-    const fetchColaboradores = async () => {
-      try {
-        const res = await fetch('http://localhost:4000/api/admin/colaboradores');
-        const data = await res.json();
-        if (data.exito) {
-          setColaboradores(data.colaboradores);
-        }
-      } catch (error) {
-        console.error('Error cargando colaboradores:', error);
-      } finally {
-        setCargando(false);
+  const fetchColaboradores = async () => {
+    try {
+      const res = await fetch('http://localhost:4000/api/admin/colaboradores');
+      const data = await res.json();
+      if (data.exito) {
+        setColaboradores(data.colaboradores);
       }
-    };
+    } catch (error) {
+      console.error('Error cargando colaboradores desde MySQL:', error);
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  useState(() => {
     fetchColaboradores();
-  }, []);
+  });
 
   const getIniciales = (nombre = 'Colaborador') => {
     return nombre.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
@@ -29,9 +30,9 @@ export default function AdminColaboradoresTab() {
 
   const formatearFecha = (fechaStr) => {
     if (!fechaStr) return 'N/A';
-    const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
     const partes = fechaStr.split('T')[0].split('-');
     if (partes.length < 3) return fechaStr;
+    const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
     return `${partes[2]} ${meses[parseInt(partes[1]) - 1]} ${partes[0]}`;
   };
 
@@ -42,115 +43,84 @@ export default function AdminColaboradoresTab() {
     c.puesto?.toLowerCase().includes(busqueda.toLowerCase())
   );
 
-  if (cargando) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '80px', color: 'var(--accent-primary)', gap: '10px' }}>
-        <Loader2 className="animate-spin" size={24} /> Sincronizando directorio desde Supabase...
-      </div>
-    );
-  }
-
   return (
-    <div className="ios-glass-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       
-      {/* Cabecera y Buscador */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-        <div>
-          <h3 style={{ fontSize: '1.1rem', fontWeight: '700' }}>Directorio General de Colaboradores ({colaboradores.length})</h3>
-          <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Información sincronizada en tiempo real con la base de datos de Supabase.</p>
-        </div>
-        
-        <div style={{ position: 'relative', width: '300px' }}>
-          <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
-          <input 
+      {/* Buscador de Colaboradores en MySQL */}
+      <div className="ios-glass-card" style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+        <div style={{ position: 'relative', flex: 1, minWidth: '260px' }}>
+          <Search size={16} color="var(--text-muted)" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
+          <input
             type="text"
-            placeholder="Buscar por nombre, correo, puesto..."
+            className="ios-input"
+            placeholder="Buscar por nombre, puesto, departamento o correo..."
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
-            className="ios-input"
-            style={{ paddingLeft: '36px', fontSize: '0.85rem' }}
+            style={{ paddingLeft: '38px', paddingRight: '14px' }}
           />
+        </div>
+        <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+          Mostrando <strong>{colaboradoresFiltrados.length}</strong> de {colaboradores.length} colaboradores
         </div>
       </div>
 
-      {/* Tabla Corporativa Organizada */}
-      <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.88rem' }}>
-          <thead>
-            <tr style={{ borderBottom: '1px solid var(--glass-border)', color: 'var(--text-secondary)', fontSize: '0.78rem' }}>
-              <th style={{ padding: '12px 10px' }}>Colaborador</th>
-              <th style={{ padding: '12px 10px' }}>Departamento</th>
-              <th style={{ padding: '12px 10px' }}>Puesto</th>
-              <th style={{ padding: '12px 10px' }}>Ingreso</th>
-              <th style={{ padding: '12px 10px' }}>Rol</th>
-              <th style={{ padding: '12px 10px' }}>Estado</th>
-            </tr>
-          </thead>
-          <tbody>
-            {colaboradoresFiltrados.length === 0 ? (
-              <tr>
-                <td colSpan="6" style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>
-                  No se encontraron colaboradores con ese criterio de búsqueda.
-                </td>
+      {/* Tabla de Directorio */}
+      <div className="ios-glass-card" style={{ padding: '0px', overflow: 'hidden' }}>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.84rem' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid var(--glass-border)', background: 'rgba(255, 255, 255, 0.02)' }}>
+                <th style={{ padding: '14px 18px', color: 'var(--text-secondary)', fontWeight: '600' }}>Colaborador</th>
+                <th style={{ padding: '14px 18px', color: 'var(--text-secondary)', fontWeight: '600' }}>Departamento</th>
+                <th style={{ padding: '14px 18px', color: 'var(--text-secondary)', fontWeight: '600' }}>Puesto</th>
+                <th style={{ padding: '14px 18px', color: 'var(--text-secondary)', fontWeight: '600' }}>Ingreso</th>
+                <th style={{ padding: '14px 18px', color: 'var(--text-secondary)', fontWeight: '600' }}>Días Vacaciones</th>
+                <th style={{ padding: '14px 18px', color: 'var(--text-secondary)', fontWeight: '600' }}>Rol</th>
               </tr>
-            ) : (
-              colaboradoresFiltrados.map((c, index) => (
+            </thead>
+            <tbody>
+              {colaboradoresFiltrados.map((c, i) => (
                 <tr 
-                  key={c.id || index}
-                  style={{ borderBottom: '1px solid rgba(255,255,255,0.03)', transition: 'background 0.2s' }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(56, 189, 248, 0.04)'}
+                  key={c.id || i}
+                  style={{ borderBottom: '1px solid var(--glass-border)', transition: 'background 0.15s' }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.02)'}
                   onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                 >
-                  {/* Columna Colaborador (Nombre + Correo debajo) */}
-                  <td style={{ padding: '12px 10px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div className="avatar-initials">{getIniciales(c.nombre)}</div>
-                    <div>
-                      <div style={{ fontWeight: '600', color: '#fff' }}>{c.nombre || 'Sin nombre'}</div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
-                        <Mail size={12} style={{ opacity: 0.7 }} /> {c.email || 'Sin correo'}
+                  <td style={{ padding: '12px 18px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <div className="avatar-initials">
+                        {getIniciales(c.nombre)}
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: '600', color: '#fff' }}>{c.nombre}</div>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{c.email}</div>
                       </div>
                     </div>
                   </td>
-
-                  {/* Departamento */}
-                  <td style={{ padding: '12px 10px', color: 'var(--text-secondary)' }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
-                      <Building2 size={13} style={{ opacity: 0.6 }} /> {c.departamento || 'General'}
+                  <td style={{ padding: '12px 18px', color: 'var(--text-secondary)' }}>{c.departamento}</td>
+                  <td style={{ padding: '12px 18px', color: '#fff' }}>{c.puesto}</td>
+                  <td style={{ padding: '12px 18px', color: 'var(--text-secondary)' }}>{formatearFecha(c.fecha_ingreso)}</td>
+                  <td style={{ padding: '12px 18px' }}>
+                    <span style={{ 
+                      fontWeight: '600', 
+                      color: c.diasVacaciones >= 20 ? '#f43f5e' : '#fff',
+                      background: c.diasVacaciones >= 20 ? 'rgba(244, 63, 94, 0.1)' : 'transparent',
+                      padding: c.diasVacaciones >= 20 ? '2px 8px' : '0',
+                      borderRadius: '4px'
+                    }}>
+                      {c.diasVacaciones} días
                     </span>
                   </td>
-
-                  {/* Puesto */}
-                  <td style={{ padding: '12px 10px', color: 'var(--text-main)', fontWeight: '500' }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
-                      <Briefcase size={13} style={{ opacity: 0.6, color: 'var(--accent-primary)' }} /> {c.puesto || 'Colaborador'}
-                    </span>
-                  </td>
-
-                  {/* Fecha de Ingreso */}
-                  <td style={{ padding: '12px 10px', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
-                      <Calendar size={13} style={{ opacity: 0.6 }} /> {formatearFecha(c.fecha_ingreso)}
-                    </span>
-                  </td>
-
-                  {/* Rol */}
-                  <td style={{ padding: '12px 10px' }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', fontWeight: '600', color: 'var(--accent-primary)', background: 'var(--accent-soft)', padding: '3px 8px', borderRadius: '6px' }}>
-                      <Shield size={11} /> {c.rol || 'colaborador'}
-                    </span>
-                  </td>
-
-                  {/* Estado */}
-                  <td style={{ padding: '12px 10px' }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.73rem', fontWeight: '600', color: '#22c55e', background: 'rgba(34,197,94,0.1)', padding: '3px 8px', borderRadius: '99px', textTransform: 'capitalize' }}>
-                      <UserCheck size={11} /> {c.estado || 'activo'}
+                  <td style={{ padding: '12px 18px' }}>
+                    <span className="badge-corp" style={{ padding: '2px 8px', fontSize: '0.68rem' }}>
+                      {c.rol === 'admin_rrhh' ? 'Admin RRHH' : 'Colaborador'}
                     </span>
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
     </div>

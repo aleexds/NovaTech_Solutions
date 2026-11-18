@@ -1,13 +1,12 @@
-const { supabase } = require('../../config/supabaseClient')
-const axios = require('axios');
+const { pool } = require('../../config/mysqlClient');
 
-// Definición de las herramientas en formato compatible con LLMs
+// Definición de la herramienta compatible con LLMs
 const hrToolsDefinition = [
     {
         type: "function",
         function: {
             name: "buscar_politicas_rrhh",
-            description: "Busca información oficial en las políticas de recursos humanos de NovaTech almacenadas en Supabase basándose en la pregunta del empleado.",
+            description: "Busca información oficial en las políticas de recursos humanos de NovaTech almacenadas en la base de datos de MySQL basándose en la pregunta del empleado.",
             parameters: {
                 type: "object",
                 properties: {
@@ -22,49 +21,58 @@ const hrToolsDefinition = [
     }
 ];
 
-// Implementación real de la herramienta
+// Implementación real de la herramienta sobre MySQL
 async function buscarPoliticasRRHH({ consulta }) {
     try {
-        console.log(`🔍 [Tool] Buscando en Supabase sobre: "${consulta}"`);
-        
-        // Hacemos una consulta de coincidencia de texto básico o por similitud en la tabla
-        const { data, error } = await supabase
-            .from('documentos_vectorial')
-            .select('nombre_documento, seccion, contenido, enlace_drive')
-            .textSearch('contenido', consulta, {
-                type: 'websearch',
-                config: 'english'
-            })
-            .limit(3);
+        console.log(`🔍 [Tool MySQL] Buscando en políticas sobre: "${consulta}"`);
 
-        if (error) {
-            // Fallback si textSearch falla por configuración de idioma: traemos los primeros registros relevantes
-            const { data: fallbackData, error: fallbackError } = await supabase
-                .from('documentos_vectorial')
-                .select('nombre_documento, seccion, contenido, enlace_drive')
-                .limit(3);
-
-            if (fallbackError) throw fallbackError;
-            return JSON.stringify(fallbackData);
+        // Búsqueda en MySQL utilizando MATCH AGAINST (Full-Text Search) o LIKE como fallback
+        let rows = [];
+        try {
+            const [ftResults] = await pool.query(`
+                SELECT nombre_documento, seccion, contenido, enlace_drive,
+                       MATCH(contenido, nombre_documento) AGAINST(? IN NATURAL LANGUAGE MODE) AS relevancia
+                FROM documentos_vectorial
+                WHERE MATCH(contenido, nombre_documento) AGAINST(? IN NATURAL LANGUAGE MODE)
+                ORDER BY relevancia DESC
+                LIMIT 4;
+            `, [consulta, consulta]);
+            rows = ftResults;
+        } catch (ftErr) {
+            console.warn('Full-text search fallback:', ftErr.message);
         }
 
-        if (!data || data.length === 0) {
-            // Segundo fallback trayendo todo el contenido disponible para asegurar contexto
-            const { data: allData } = await supabase
-                .from('documentos_vectorial')
-                .select('nombre_documento, seccion, contenido, enlace_drive')
-                .limit(5);
-            return JSON.stringify(allData || []);
+        // Fallback por LIKE si la búsqueda fulltext no devolvió filas
+        if (!rows || rows.length === 0) {
+            const palabras = consulta.split(' ').filter(w => w.length > 3).slice(0, 3);
+            const whereClause = palabras.length > 0
+                ? palabras.map(() => 'contenido LIKE ?').join(' OR ')
+                : '1=1';
+            const params = palabras.map(p => `%${p}%`);
+
+            const [likeResults] = await pool.query(`
+                SELECT nombre_documento, seccion, contenido, enlace_drive
+                FROM documentos_vectorial
+                WHERE ${whereClause}
+                LIMIT 3;
+            `, params);
+            rows = likeResults;
         }
 
-        return JSON.stringify(data);
+        if (!rows || rows.length === 0) {
+            return JSON.stringify({
+                mensaje: "No se encontraron políticas directamente relacionadas para esta consulta específica.",
+                encontrado: false
+            });
+        }
+
+        return JSON.stringify(rows);
     } catch (error) {
-        console.error('Error en tool buscar_politicas_rrhh:', error.message);
-        return JSON.stringify({ error: "No se pudo recuperar información de la base de datos." });
+        console.error('Error en tool buscar_politicas_rrhh con MySQL:', error.message);
+        return JSON.stringify({ error: "No se pudo recuperar información de la base de datos MySQL." });
     }
 }
 
-// Ejecutor de herramientas por nombre
 async function ejecutarHerramienta(nombreTool, argumentos) {
     if (nombreTool === 'buscar_politicas_rrhh') {
         return await buscarPoliticasRRHH(argumentos);

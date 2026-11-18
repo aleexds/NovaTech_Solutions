@@ -1,0 +1,23 @@
+# POLÍTICA SALARIAL, CALENDARIO DE PAGOS Y AGUINALDO
+**Empresa:** NovaTech Solutions S.A.  
+**Versión:** 2.0  
+**Fecha de vigencia:** 1 de enero de 2026  
+**Responsable:** Dirección Financiera y Nómina de RRHH  
+**Código del documento:** POL-RRHH-005  
+
+---
+
+## 1. Fechas y Modalidad de Pago de Nómina
+- El pago de la planilla ordinaria se realiza de forma **quincenal**:
+  - Primer pago: **Día 15 de cada mes** (o el día hábil inmediato anterior si coincide con fin de semana o feriado).
+  - Segundo pago: **Último día hábil del mes calendario**.
+- La acreditación se realiza vía transferencia bancaria directa a la cuenta designada por el colaborador en moneda nacional o dólares según su contrato.
+
+## 2. Cálculo y Fecha del Aguinaldo (Décimo Tercer Mes)
+- **Cálculo:** El aguinaldo corresponde a la doceava parte (1/12) de todas las remuneraciones ordinarias y extraordinarias devengadas por el colaborador entre el 1 de diciembre del año anterior y el 30 de noviembre del año en curso.
+- **Fecha límite de pago:** NovaTech cancela el aguinaldo en su totalidad a más tardar el **10 de diciembre de cada año**, superando el plazo legal ordinario fijado para el 20 de diciembre.
+- El aguinaldo está exento de cargas sociales y de retención del impuesto sobre la renta conforme a las leyes vigentes.
+
+## 3. Deducciones Legales y Voluntarias
+- Deducciones por ley: Cargas de la seguridad social del trabajador y retenciones aplicables del impuesto al salario.
+- Deducciones voluntarias autorizadas: Aporte mensual a la Asociación Solidarista / Fondo de Ahorro NovaTech (mínimo 3% hasta 10% del salario nominal) y planes de salud prepagada adicionales.
