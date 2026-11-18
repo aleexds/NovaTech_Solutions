@@ -1,0 +1,32 @@
+# MANUAL DE ONBOARDING, PERIODO DE PRUEBA Y SALIDA
+**Empresa:** NovaTech Solutions S.A.  
+**Versión:** 2.0  
+**Fecha de vigencia:** 1 de enero de 2026  
+**Responsable:** Atracción de Talento y Operaciones de RRHH  
+**Código del documento:** POL-RRHH-007  
+
+---
+
+## 1. Proceso de Onboarding (Inducción)
+- Semana 1: Entrega de equipo tecnológico de alta gama, credenciales corporativas, inducción de cultura y seguridad informática.
+- Asignación de un "Buddy" (mentor) durante los primeros 45 días para guiar al nuevo talento en los procesos técnicos y de equipo.
+
+## 2. Período de Prueba
+- El período de prueba establecido legalmente y por contrato es de **3 meses continuos** desde la fecha de inicio de labores.
+- Durante este lapso, cualquiera de las partes podrá rescindir el contrato laboral sin responsabilidad patronal ni obligación de preaviso ni pago de auxilio de cesantía.
+- Al cumplirse los 80 días, la jefatura realizará una evaluación de cierre de período de prueba para formalizar la continuidad indefinida.
+
+## 3. Procedimiento de Salida Voluntaria (Renuncia) y Preaviso
+- Si el colaborador decide renunciar a su puesto, los plazos de **preaviso obligatorio** por ley y política son:
+  - De 3 a 6 meses de antigüedad: **1 semana de preaviso**.
+  - De 6 meses a 1 año de antigüedad: **15 días de preaviso**.
+  - Más de 1 año de servicio continuo: **1 mes calendario de preaviso**.
+- Durante el mes de preaviso, el colaborador tiene derecho a **1 día de asueto remunerado a la semana** para la búsqueda de nuevo empleo.
+
+## 4. Liquidación Laboral y Despido sin Justa Causa
+- En caso de terminación del contrato de trabajo con responsabilidad patronal (sin justa causa), la liquidación incluirá:
+  - Salario pendiente a la fecha del cese.
+  - Vacaciones no disfrutadas calculadas de forma proporcional.
+  - Aguinaldo proporcional a los meses laborados.
+  - Pago de auxilio de cesantía (hasta un tope de 8 años de antigüedad conforme a la ley).
+- El pago completo de la liquidación y la constancia de trabajo se entregan en un plazo máximo de 10 días hábiles tras el último día laborado.

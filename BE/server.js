@@ -3,6 +3,9 @@ const cors = require('cors');
 require('dotenv').config();
 
 const { listarArchivosDrive, leerContenidoArchivo } = require('./driveSync');
+const { sincronizarDriveAMySQL } = require('./syncService');
+const { procesarMensajeAgente } = require('./src/agent/hrAgentCoordinator');
+const { pool } = require('./config/mysqlClient');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -11,16 +14,20 @@ const PORT = process.env.PORT || 4000;
 app.use(cors());
 app.use(express.json());
 
-// Ruta raíz de estado del servidor
+// ==========================================
+// 1. RUTA RAÍZ DE ESTADO
+// ==========================================
 app.get('/', (req, res) => {
     res.json({
         estado: 'activo',
-        sistema: 'NovaTech HR Portal API - Backend Node.js',
+        sistema: 'NovaTech HR Portal API - Backend Node.js & MySQL',
         empresa: 'NovaTech Solutions S.A.'
     });
 });
 
-// Ruta 1: Verificar conexión y listar archivos en la carpeta de Drive
+// ==========================================
+// 2. RUTAS DE GOOGLE DRIVE Y RAG
+// ==========================================
 app.get('/api/drive/test', async (req, res) => {
     try {
         const archivos = await listarArchivosDrive();
@@ -38,7 +45,6 @@ app.get('/api/drive/test', async (req, res) => {
     }
 });
 
-// Ruta 2: Extraer y previsualizar el texto de todos los documentos en Drive
 app.get('/api/drive/leer-contenido', async (req, res) => {
     try {
         const archivos = await listarArchivosDrive();
@@ -59,8 +65,8 @@ app.get('/api/drive/leer-contenido', async (req, res) => {
                 nombre: archivo.name,
                 tipo: archivo.mimeType,
                 enlace: archivo.webViewLink,
-                caracteresExtraidos: contenido.length,
-                extracto: contenido.substring(0, 400) + '...'
+                caracteresExtraidos: contenido ? contenido.length : 0,
+                extracto: contenido ? (contenido.substring(0, 400) + '...') : ''
             });
         }
 
@@ -77,17 +83,9 @@ app.get('/api/drive/leer-contenido', async (req, res) => {
     }
 });
 
-// Iniciar servidor
-app.listen(PORT, () => {
-    console.log(`Servidor de NovaTech corriendo en http://localhost:${PORT}`);
-});
-
-const { sincronizarDriveASupabase } = require('./syncService');
-
-// Ruta para ejecutar la sincronización de Drive a Supabase
 app.get('/api/drive/sincronizar', async (req, res) => {
     try {
-        const resultado = await sincronizarDriveASupabase();
+        const resultado = await sincronizarDriveAMySQL();
         res.json(resultado);
     } catch (error) {
         res.status(500).json({
@@ -97,18 +95,18 @@ app.get('/api/drive/sincronizar', async (req, res) => {
     }
 });
 
-const { procesarMensajeAgente } = require('./src/agent/hrAgentCoordinator');
-
-// Ruta para chatear con el Agente de RRHH de NovaTech
+// ==========================================
+// 3. RUTA DEL CHATBOT DE RRHH (AGENTES)
+// ==========================================
 app.post('/api/chat/hr', async (req, res) => {
     try {
-        const { sessionId = 'default-session', mensaje } = req.body;
+        const { sessionId = 'default-session', mensaje, usuario } = req.body;
 
         if (!mensaje) {
             return res.status(400).json({ exito: false, error: 'El campo mensaje es obligatorio.' });
         }
 
-        const resultado = await procesarMensajeAgente(sessionId, mensaje);
+        const resultado = await procesarMensajeAgente(sessionId, mensaje, usuario);
         res.json({
             exito: true,
             sessionId: resultado.sessionId,
@@ -123,7 +121,9 @@ app.post('/api/chat/hr', async (req, res) => {
     }
 });
 
-// Ruta para simular el inicio de sesión y obtener el perfil del colaborador
+// ==========================================
+// 4. RUTA DE AUTENTICACIÓN (LOGIN) CON MYSQL
+// ==========================================
 app.post('/api/auth/login', async (req, res) => {
     try {
         const { email } = req.body;
@@ -132,30 +132,26 @@ app.post('/api/auth/login', async (req, res) => {
             return res.status(400).json({ exito: false, error: 'El correo electrónico es obligatorio.' });
         }
 
-        // Simulamos la base de datos de los 180 colaboradores de NovaTech Solutions S.A.
-        // Si el correo es de RRHH, le damos privilegios especiales; si no, rol de colaborador estándar.
+        // Consultar usuario en MySQL si existe
+        const [rows] = await pool.query('SELECT * FROM colaboradores WHERE id = ? OR nombre LIKE ? LIMIT 1', [
+            email.split('@')[0],
+            `%${email.split('@')[0]}%`
+        ]);
+
         let colaborador = {};
 
-        if (email.toLowerCase().includes('sofia.vargas') || email.toLowerCase().includes('rrhh')) {
-            colaborador = {
-                id: 'EMP-001',
-                nombre: 'Sofía Vargas',
-                correo: email,
-                puesto: 'Gerente de RRHH',
-                departamento: 'Recursos Humanos',
-                rol: 'admin_rrhh',
-                permisosEdicion: true
-            };
+        if (rows && rows.length > 0) {
+            colaborador = rows[0];
         } else {
-            // Colaborador estándar de NovaTech
+            const esAdmin = email.toLowerCase().includes('admin') || email.toLowerCase().includes('rrhh');
             colaborador = {
-                id: 'EMP-' + Math.floor(100 + Math.random() * 900),
-                nombre: email.split('@')[0].replace('.', ' ').toUpperCase(),
-                correo: email,
-                puesto: 'Desarrollador / Especialista Técnico',
-                departamento: 'Tecnología',
-                rol: 'colaborador',
-                permisosEdicion: false
+                id: esAdmin ? 'EMP-001' : 'EMP-' + Math.floor(100 + Math.random() * 900),
+                nombre: esAdmin ? 'Carlos Valenzuela' : email.split('@')[0].replace('.', ' ').toUpperCase(),
+                departamento: esAdmin ? 'Recursos Humanos' : 'Tecnología',
+                puesto: esAdmin ? 'Director de RRHH' : 'Especialista de Software',
+                fecha_ingreso: '2023-01-15',
+                rol: esAdmin ? 'admin_rrhh' : 'colaborador',
+                estado: 'activo'
             };
         }
 
@@ -173,38 +169,25 @@ app.post('/api/auth/login', async (req, res) => {
     }
 });
 
-const { supabase } = require('./config/supabaseClient');
-
-// Ruta para listar las políticas de RRHH disponibles en la base de datos vectorial
+// ==========================================
+// 5. LISTA DE POLÍTICAS DE RRHH DESDE MYSQL
+// ==========================================
 app.get('/api/politicas/lista', async (req, res) => {
     try {
-        // Obtenemos los documentos únicos almacenados en Supabase
-        const { data, error } = await supabase
-            .from('documentos_vectorial')
-            .select('nombre_documento, version, enlace_drive')
-            .order('nombre_documento', { ascending: true });
-
-        if (error) throw error;
-
-        // Filtramos para mostrar una lista limpia sin duplicados por chunks
-        const politicasUnicas = [];
-        const nombresVistos = new Set();
-
-        for (const item of (data || [])) {
-            if (!nombresVistos.has(item.nombre_documento)) {
-                nombresVistos.add(item.nombre_documento);
-                politicasUnicas.push({
-                    nombre: item.nombre_documento,
-                    version: item.version || '1.0',
-                    enlaceDrive: item.enlace_drive
-                });
-            }
-        }
+        const [rows] = await pool.query(`
+            SELECT DISTINCT nombre_documento, version, enlace_drive
+            FROM documentos_vectorial
+            ORDER BY nombre_documento ASC
+        `);
 
         res.json({
             exito: true,
-            totalPoliticas: politicasUnicas.length,
-            politicas: politicasUnicas
+            totalPoliticas: rows.length,
+            politicas: rows.map(r => ({
+                nombre: r.nombre_documento,
+                version: r.version || '1.0',
+                enlaceDrive: r.enlace_drive
+            }))
         });
 
     } catch (error) {
@@ -213,4 +196,46 @@ app.get('/api/politicas/lista', async (req, res) => {
             error: error.message
         });
     }
+});
+
+// ==========================================
+// 6. DATOS DEL DASHBOARD ADMINISTRATIVO
+// ==========================================
+app.get('/api/admin/dashboard', async (req, res) => {
+    try {
+        const [[colabs]] = await pool.query('SELECT COUNT(*) AS total FROM colaboradores WHERE estado = "activo"');
+        const [[incap]] = await pool.query('SELECT COUNT(*) AS total FROM incapacidades WHERE fecha_inicio >= DATE_SUB(CURDATE(), INTERVAL 14 DAY)');
+        const [[pend]] = await pool.query('SELECT COUNT(*) AS total FROM solicitudes WHERE estado = "pendiente"');
+        const [[riesgo]] = await pool.query('SELECT COUNT(*) AS total FROM saldos_vacaciones WHERE dias_disponibles >= 20');
+        
+        const [solicitudes] = await pool.query(`
+            SELECT s.*, c.nombre AS colaborador_nombre, c.departamento
+            FROM solicitudes s
+            LEFT JOIN colaboradores c ON s.colaborador_id = c.id
+            ORDER BY s.creada_en DESC
+            LIMIT 10
+        `);
+
+        // Leer el último reporte diario generado si existe
+        const [reporte] = await pool.query('SELECT * FROM reportes_diarios ORDER BY fecha DESC LIMIT 1');
+
+        res.json({
+            exito: true,
+            kpis: {
+                totalColaboradores: colabs?.total || 0,
+                incapacidadesHoy: incap?.total || 0,
+                pendientes: pend?.total || 0,
+                riesgoPasivo: riesgo?.total || 0
+            },
+            solicitudes: solicitudes || [],
+            resumenEjecutivo: reporte[0]?.resumen_texto || "El sistema multiagente monitorea en tiempo real las ausencias, solicitudes y saldos acumulados de los colaboradores de NovaTech Solutions."
+        });
+    } catch (error) {
+        res.status(500).json({ exito: false, error: error.message });
+    }
+});
+
+// Iniciar servidor
+app.listen(PORT, () => {
+    console.log(`🚀 Servidor NovaTech ejecutándose en http://localhost:${PORT} con MySQL`);
 });

@@ -1,0 +1,22 @@
+# REGLAMENTO DE JORNADA LABORAL, HORARIOS Y TELETRABAJO
+**Empresa:** NovaTech Solutions S.A.  
+**Versión:** 2.0  
+**Fecha de vigencia:** 1 de enero de 2026  
+**Responsable:** Dirección de Operaciones & Talento Humano  
+**Código del documento:** POL-RRHH-004  
+
+---
+
+## 1. Jornadas y Horarios Oficiales
+- **Jornada ordinaria diurna:** 40 horas semanales distribuidas de lunes a viernes, entre las 08:00 y las 17:00 horas, con 1 hora para almuerzo y 15 minutos de receso de café matutino.
+- Flexitime: Los colaboradores podrán ingresar entre las 07:30 y las 09:00 horas, cumpliendo sus 8 horas efectivas diarias.
+
+## 2. Política de Teletrabajo (Modalidad Híbrida)
+- NovaTech opera bajo un esquema híbrido flexible: hasta **3 días de trabajo remoto** (home office) y un mínimo de **2 días presenciales** en sede corporativa a la semana.
+- Para puestos de soporte técnico y guardias de infraestructura en nube, los acuerdos remotos 100% son evaluados por la dirección del área.
+- La empresa provee computadora portátil de alta gama, monitor complementario y un bono mensual de conectividad de internet de $50 USD.
+
+## 3. Horas Extraordinarias y su Remuneración
+- Todo trabajo realizado fuera de la jornada regular debe estar preaprobado por escrito por la jefatura del departamento.
+- Las horas extraordinarias diurnas se pagan con un **50% de recargo sobre el valor de la hora ordinaria** (tiempo y medio).
+- Las horas extraordinarias laboradas en horario nocturno o días feriados obligatorios se remuneran con un **100% de recargo** (tiempo doble).

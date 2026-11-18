@@ -1,0 +1,24 @@
+# AVISO DE PRIVACIDAD Y PROTECCIÓN DE DATOS DEL COLABORADOR
+**Empresa:** NovaTech Solutions S.A.  
+**Versión:** 2.0  
+**Fecha de vigencia:** 1 de enero de 2026  
+**Responsable:** Oficial de Privacidad y Dirección Jurídica  
+**Código del documento:** POL-RRHH-010  
+
+---
+
+## 1. Responsable del Tratamiento de Datos
+NovaTech Solutions S.A. es responsable de la recopilación, almacenamiento, uso y protección de los datos personales de sus colaboradores y exempleados, en estricto cumplimiento de la Ley de Protección de la Persona frente al Tratamiento de sus Datos Personales y estándares internacionales (GDPR e ISO 27001).
+
+## 2. Finalidad del Tratamiento de Datos
+Los datos recabados (identidad, domicilio, cuenta bancaria, beneficiarios, evaluaciones de desempeño y registros de salud ocupacional) se utilizarán exclusivamente para:
+- La correcta administración de la relación laboral y pago de nómina.
+- La gestión de seguros médicos, beneficios y planes de desarrollo profesional.
+- Cumplimiento de obligaciones legales ante autoridades tributarias, laborales y de seguridad social.
+
+## 3. Seguridad, Confidencialidad y Restricción de Acceso
+- **Privacidad entre colaboradores:** Toda información salarial, historial médico, evaluaciones y saldos de vacaciones es de carácter estrictamente confidencial. Ningún colaborador tiene autorización para consultar o acceder a los datos de otros compañeros de trabajo, limitándose el acceso únicamente al personal autorizado de RRHH y la gerencia directa.
+- La empresa implementa cifrado en tránsito (TLS 1.3), cifrado en reposo (AES-256) y autenticación multifactor en todos sus repositorios de información.
+
+## 4. Ejercicio de Derechos ARCO (Acceso, Rectificación, Cancelación y Oposición)
+- Cualquier colaborador puede solicitar acceso o rectificación de sus datos personales enviando una solicitud formal a `privacidad@novatech.com`. La respuesta se otorgará en un plazo máximo de 10 días hábiles.

@@ -1,0 +1,27 @@
+# CÓDIGO DE CONDUCTA, ÉTICA Y PROTOCOLO DE DENUNCIAS
+**Empresa:** NovaTech Solutions S.A.  
+**Versión:** 2.0  
+**Fecha de vigencia:** 1 de enero de 2026  
+**Responsable:** Comité de Ética y Cumplimiento  
+**Código del documento:** POL-RRHH-009  
+
+---
+
+## 1. Principios Fundamentales
+NovaTech Solutions S.A. promueve un entorno de trabajo basado en el respeto mutuo, la integridad, la transparencia, la no discriminación (por género, raza, orientación sexual, religión o edad) y la excelencia técnica.
+
+## 2. Política de Cero Tolerancia al Acoso Laboral y Sexual
+- La empresa mantiene una postura inquebrantable de **tolerancia cero** frente a cualquier manifestación de acoso laboral (mobbing), violencia psicológica o acoso sexual en el ámbito físico o digital (Slack, Teams, correo electrónico, videollamadas).
+- Toda conducta que genere un ambiente hostil, humillante o intimidatorio será objeto de investigación inmediata y sancionada con despido sin responsabilidad patronal según la gravedad.
+
+## 3. Canal Oficial y Confidencial de Denuncias
+- **Línea Ética Confidencial:** Las denuncias pueden interponerse mediante el buzón seguro en línea `etica@novatech.com` o el formulario anónimo disponible en el portal.
+- El Comité de Ética garantiza absoluta **confidencialidad y protección contra represalias** a todo colaborador que denuncie o testifique de buena fe.
+- **Plazos de investigación:**
+  - Acuse de recibo de la denuncia: Máximo 2 días hábiles.
+  - Conclusión de la investigación y dictamen: Máximo 15 días hábiles.
+
+## 4. Régimen Disciplinario Gradual
+- Faltas leves: Amonestación verbal privada o amonestación escrita con copia al expediente.
+- Faltas graves (ej. filtración de datos de clientes, ausencias injustificadas repetidas): Suspensión disciplinaria de 1 a 8 días sin goce de salario.
+- Faltas gravísimas (acoso probado, robo, agresión física o soborno): Despido inmediato sin responsabilidad patronal y notificación a las autoridades competentes.

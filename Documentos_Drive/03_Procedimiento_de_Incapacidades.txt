@@ -1,0 +1,20 @@
+# PROCEDIMIENTO Y GESTIÓN DE INCAPACIDADES MÉDICAS
+**Empresa:** NovaTech Solutions S.A.  
+**Versión:** 2.0  
+**Fecha de vigencia:** 1 de enero de 2026  
+**Responsable:** Dirección de Personas & Cultura y Salud Ocupacional  
+**Código del documento:** POL-RRHH-003  
+
+---
+
+## 1. Notificación Obligatoria
+- En caso de enfermedad común o accidente, el colaborador debe informar a su jefatura y al equipo de RRHH antes de las primeras 2 horas del inicio de su jornada laboral habitual.
+- El comprobante o boleta oficial de incapacidad debe ser enviado digitalmente al portal dentro de las 48 horas posteriores a su emisión.
+
+## 2. Cobertura Económica: ¿Quién paga cada día?
+- **Primeros 3 días de incapacidad (Enfermedad común):** NovaTech Solutions S.A. asume el pago del **50% del salario diario**, mientras que el seguro de salud cubre el 50% restante conforme a la legislación, garantizando al colaborador recibir el 100% de su ingreso neto regular durante este lapso.
+- **A partir del 4° día en adelante:** La entidad de Seguro Social oficial asume el 60% del subsidio correspondiente conforme a su reglamento. NovaTech ofrece un subsidio complementario solidario del 20% para colaboradores con contrato indefinido durante los primeros 30 días continuos.
+- **Accidente laboral o de trayecto:** Cubierto al 100% por la póliza de riesgos de trabajo de la aseguradora patronal desde el primer día.
+
+## 3. Reincorporación Laboral
+- Al finalizar el periodo de incapacidad, el colaborador debe reportarse el día hábil siguiente con su alta médica firmada. En caso de requerir adecuaciones ergonómicas temporales, el departamento de Salud Ocupacional evaluará el puesto de trabajo.

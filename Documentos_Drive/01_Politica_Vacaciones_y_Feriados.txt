@@ -1,0 +1,31 @@
+# POLÍTICA DE VACACIONES Y CALENDARIO DE FERIADOS
+**Empresa:** NovaTech Solutions S.A.  
+**Versión:** 2.0  
+**Fecha de vigencia:** 1 de enero de 2026  
+**Responsable:** Dirección de Personas & Cultura (RRHH)  
+**Código del documento:** POL-RRHH-001  
+
+---
+
+## 1. Objetivo y Alcance
+Establecer las directrices para la solicitud, goce, acumulación y pago de vacaciones anuales y feriados nacionales para todos los colaboradores con contrato por tiempo indefinido de NovaTech Solutions S.A.
+
+## 2. Días de Vacaciones por Ley y Beneficio NovaTech
+- Por ley laboral, a cada colaborador le corresponden 12 días hábiles de descanso remunerado por cada año continuo de labores.
+- **Beneficio Enterprise NovaTech:** NovaTech otorga **15 días hábiles** de vacaciones al año a partir del primer año de servicio (superando el mínimo legal de 12 días).
+- Los colaboradores con más de 3 años de antigüedad acumulan 1 día adicional por cada año subsecuente, hasta un tope máximo de 20 días hábiles anuales.
+
+## 3. Procedimiento y Anticipación para Solicitudes
+- Toda solicitud de vacaciones debe realizarse a través del Portal Web de NovaTech HR.
+- **Anticipación requerida:**
+  - Períodos de 1 a 3 días: solicitar con un mínimo de **5 días hábiles** de antelación a su jefatura inmediata.
+  - Períodos de 4 o más días: solicitar con un mínimo de **15 días hábiles** de antelación.
+- La jefatura inmediata dispone de un máximo de 3 días hábiles para aprobar o denegar formalmente la solicitud en el sistema.
+
+## 4. Acumulación y Fraccionamiento
+- **Fraccionamiento:** Las vacaciones podrán fraccionarse en un máximo de tres períodos al año, garantizando que al menos uno de ellos sea de un mínimo de 5 días hábiles continuos.
+- **Acumulación:** Está prohibido acumular vacaciones de más de dos períodos consecutivos.
+- **Pase al año siguiente:** El colaborador podrá trasladar un máximo de **5 días pendientes** al período anual siguiente, siempre que cuente con visto bueno de RRHH y sean disfrutados dentro del primer trimestre del nuevo año. El saldo restante que supere este límite debe ser disfrutado obligatoriamente antes del cierre del año fiscal.
+
+## 5. Calendario de Feriados Obligatorios
+NovaTech reconoce todos los feriados oficiales nacionales de pago obligatorio (Año Nuevo, Jueves Santo, Viernes Santo, Día del Trabajador, Día de la Independencia, Navidad, entre otros aplicables por ley). Si un colaborador por razones operativas de guardia técnica trabaja en feriado oficial, se le remunerará con el 100% de recargo (pago doble).
