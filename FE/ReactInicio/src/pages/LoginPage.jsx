@@ -1,44 +1,51 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
-import { Shield, Mail, Lock, ArrowRight, Sparkles, Building2, User, Eye, EyeOff } from 'lucide-react';
+import { Shield, Mail, Lock, ArrowRight, Sparkles, Building2, User, Eye, EyeOff, AlertCircle } from 'lucide-react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [cargando, setCargando] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
   const { iniciarSesion } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setCargando(true);
+    setErrorMsg('');
 
-    setTimeout(() => {
-      const esAdmin = email.toLowerCase().includes('admin');
-      const usuarioMock = {
-        id: esAdmin ? 'usr-admin-01' : 'usr-colab-02',
-        nombre: esAdmin ? 'Carlos Valenzuela' : 'Ana Sofía Mendoza',
-        email: email || (esAdmin ? 'admin.rrhh@novatech.com' : 'colaborador@novatech.com'),
-        rol: esAdmin ? 'admin_rrhh' : 'colaborador',
-        puesto: esAdmin ? 'Director de Personas & Cultura' : 'Senior Software Engineer',
-        departamento: esAdmin ? 'Recursos Humanos' : 'Ingeniería'
-      };
+    try {
+      const res = await fetch('http://localhost:4000/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim(), password })
+      });
 
-      iniciarSesion(usuarioMock);
-      navigate('/dashboard', { replace: true });
-    }, 400);
+      const data = await res.json();
+
+      if (data.exito && data.usuario) {
+        // Guardar usuario real devuelto por MySQL
+        iniciarSesion(data.usuario);
+        navigate('/dashboard', { replace: true });
+        return;
+      } else {
+        setErrorMsg(data.error || 'No se pudo verificar el usuario en la base de datos.');
+      }
+    } catch (err) {
+      console.error('Error al conectar con el servidor:', err);
+      setErrorMsg('No se pudo conectar con el servidor de autenticación (puerto 4000).');
+    } finally {
+      setCargando(false);
+    }
   };
 
-  const seleccionarDemo = (rol) => {
-    if (rol === 'admin') {
-      setEmail('admin.rrhh@novatech.com');
-      setPassword('••••••••••••');
-    } else {
-      setEmail('ana.mendoza@novatech.com');
-      setPassword('••••••••••••');
-    }
+  const seleccionarDemo = (correoDemo) => {
+    setEmail(correoDemo);
+    setPassword('••••••••••••');
+    setErrorMsg('');
   };
 
   return (
@@ -51,7 +58,7 @@ export default function LoginPage() {
       padding: '24px 16px',
       position: 'relative'
     }}>
-      {/* Luz ambiental sutil (Monocromática, cero azul) */}
+      {/* Luz ambiental sutil */}
       <div style={{
         position: 'absolute',
         top: '20%',
@@ -118,6 +125,22 @@ export default function LoginPage() {
         <div className="ios-glass-card" style={{ padding: '32px 28px' }}>
           <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
             
+            {errorMsg && (
+              <div style={{
+                background: 'rgba(244, 63, 94, 0.1)',
+                border: '1px solid rgba(244, 63, 94, 0.3)',
+                color: '#f43f5e',
+                padding: '10px 12px',
+                borderRadius: '8px',
+                fontSize: '0.78rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}>
+                <AlertCircle size={15} /> {errorMsg}
+              </div>
+            )}
+
             {/* Input Correo */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               <label style={{
@@ -128,12 +151,12 @@ export default function LoginPage() {
                 alignItems: 'center',
                 gap: '6px'
               }}>
-                <Mail size={13} style={{ color: 'var(--text-muted)' }} /> Correo electrónico
+                <Mail size={13} style={{ color: 'var(--text-muted)' }} /> Correo electrónico oficial
               </label>
               <input
                 type="email"
                 className="ios-input"
-                placeholder="nombre@novatech.com"
+                placeholder="nombre.apellido@novatech.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -183,7 +206,7 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Selector Demo Sutil */}
+            {/* Cuentas de demostración de diferentes roles y áreas */}
             <div style={{
               background: 'rgba(255, 255, 255, 0.02)',
               border: '1px solid var(--glass-border)',
@@ -197,17 +220,17 @@ export default function LoginPage() {
                 marginBottom: '8px'
               }}>
                 <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                  <Sparkles size={11} /> Accesos directos:
+                  <Sparkles size={11} /> Accesos rápidos de prueba:
                 </span>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                 <button
                   type="button"
-                  onClick={() => seleccionarDemo('admin')}
+                  onClick={() => seleccionarDemo('carlos.valenzuela@novatech.com')}
                   style={{
-                    background: email.includes('admin') ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.02)',
-                    border: email.includes('admin') ? '1px solid rgba(255, 255, 255, 0.25)' : '1px solid var(--glass-border)',
-                    color: email.includes('admin') ? '#ffffff' : 'var(--text-secondary)',
+                    background: email.includes('carlos') ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.02)',
+                    border: email.includes('carlos') ? '1px solid rgba(255, 255, 255, 0.25)' : '1px solid var(--glass-border)',
+                    color: email.includes('carlos') ? '#ffffff' : 'var(--text-secondary)',
                     borderRadius: '7px',
                     padding: '6px 8px',
                     fontSize: '0.74rem',
@@ -220,15 +243,15 @@ export default function LoginPage() {
                     transition: 'all 0.15s ease'
                   }}
                 >
-                  <Building2 size={12} /> Admin RRHH
+                  <Building2 size={12} /> Carlos (Admin RRHH)
                 </button>
                 <button
                   type="button"
-                  onClick={() => seleccionarDemo('colaborador')}
+                  onClick={() => seleccionarDemo('roberto.gomez@novatech.com')}
                   style={{
-                    background: !email.includes('admin') && email ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.02)',
-                    border: !email.includes('admin') && email ? '1px solid rgba(255, 255, 255, 0.25)' : '1px solid var(--glass-border)',
-                    color: !email.includes('admin') && email ? '#ffffff' : 'var(--text-secondary)',
+                    background: email.includes('roberto') ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.02)',
+                    border: email.includes('roberto') ? '1px solid rgba(255, 255, 255, 0.25)' : '1px solid var(--glass-border)',
+                    color: email.includes('roberto') ? '#ffffff' : 'var(--text-secondary)',
                     borderRadius: '7px',
                     padding: '6px 8px',
                     fontSize: '0.74rem',
@@ -241,12 +264,12 @@ export default function LoginPage() {
                     transition: 'all 0.15s ease'
                   }}
                 >
-                  <User size={12} /> Colaborador
+                  <User size={12} /> Roberto (Finanzas)
                 </button>
               </div>
             </div>
 
-            {/* Botón Principal Blanco/Monocromo de alto contraste */}
+            {/* Botón Principal */}
             <button
               type="submit"
               className="btn-primary"
@@ -259,7 +282,7 @@ export default function LoginPage() {
                 opacity: cargando ? 0.7 : 1
               }}
             >
-              {cargando ? 'Verificando...' : (
+              {cargando ? 'Verificando credenciales en MySQL...' : (
                 <>
                   Continuar <ArrowRight size={15} />
                 </>
@@ -291,12 +314,11 @@ export default function LoginPage() {
             </Link>
 
             <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-              Acceso seguro
+              Autenticación Oficial MySQL
             </span>
           </div>
         </div>
 
-        {/* Footer */}
         <div style={{ textAlign: 'center', marginTop: '18px' }}>
           <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
             NovaTech Solutions S.A.
