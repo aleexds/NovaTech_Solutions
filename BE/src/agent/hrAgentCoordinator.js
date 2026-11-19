@@ -1,21 +1,15 @@
 const { consultarDeepSeek } = require('../../services/deepseekService');
 const { ejecutarAgentePoliticas } = require('./agentePoliticas');
 const { ejecutarAgenteDatos } = require('./agenteDatos');
+const { validarRespuesta } = require('./agenteValidador');
+const { escalarCasoRRHH } = require('./agenteEscalamiento');
 const { pool } = require('../../config/mysqlClient');
 
-// Memoria de conversación por sesión
 const sesionesMemoria = {};
 
 /**
  * Agente Orquestador (Principal)
- * Responsabilidad:
- * 1. Clasificar la intención de la consulta:
- *    - 'politica' -> Agente de Políticas (RAG)
- *    - 'dato_personal' -> Agente de Datos del Colaborador
- *    - 'mixta' -> Llama a ambos y combina la respuesta
- *    - 'restringida' -> Intento de consultar datos de terceros o salario de otro (¡Debe negarse rotundamente!)
- *    - 'fuera_de_alcance' -> Temas ajenos a RRHH (películas, chistes, etc.)
- * 2. Registrar en la tabla `consultas_chat` para alimentar la analítica del dashboard.
+ * Coordina los 5 agentes obligatorios + Agente Validador y Agente de Escalamiento (Puntos Extra)
  */
 async function procesarMensajeAgente(sessionId = 'default-session', mensajeUsuario, usuarioAutenticado) {
     const inicio = Date.now();
@@ -26,19 +20,25 @@ async function procesarMensajeAgente(sessionId = 'default-session', mensajeUsuar
     let escalada = false;
 
     try {
-        console.log(`🧭 [Orquestador] Consulta recibida: "${mensajeUsuario}" de usuario: ${usuarioAutenticado?.nombre || 'Invitado'}`);
+        console.log(`🧭 [Orquestador] Consulta: "${mensajeUsuario}" | Usuario: ${usuarioAutenticado?.nombre || 'Invitado'}`);
 
-        // Inicializar memoria de sesión
         if (!sesionesMemoria[sessionId]) {
             sesionesMemoria[sessionId] = [];
         }
 
         const msgLower = mensajeUsuario.toLowerCase();
 
-        // ==========================================
-        // 1. EVALUACIÓN DE SEGURIDAD (PREGUNTAS RESTRINGIDAS #21 y #22)
-        // Ningún colaborador puede acceder a datos salariales o privados de un tercero
-        // ==========================================
+        // 1. Detección de petición explícita de escalamiento
+        if (msgLower.includes('escalar') || msgLower.includes('abrir ticket') || msgLower.includes('ticket a rrhh')) {
+            const resEscalamiento = await escalarCasoRRHH({
+                colaboradorId: usuarioAutenticado?.id,
+                colaboradorNombre: usuarioAutenticado?.nombre,
+                pregunta: mensajeUsuario
+            });
+            return registrarYResponder(sessionId, usuarioAutenticado, mensajeUsuario, 'escalamiento', 'agente_escalamiento', resEscalamiento.mensaje, [], true, Date.now() - inicio);
+        }
+
+        // 2. Control estricto de seguridad (#21 y #22)
         const esAdmin = usuarioAutenticado?.rol === 'admin_rrhh';
         const preguntaPorTercero = /(cuánto gana|cuanto gana|salario de|sueldo de|días de vacaciones tiene|vacaciones tiene|dias de vacaciones de)/i.test(msgLower) &&
                                   /(compañero|compañera|gerente|director|juan|pedro|ana|carlos|jefe)/i.test(msgLower);
@@ -50,9 +50,7 @@ async function procesarMensajeAgente(sessionId = 'default-session', mensajeUsuar
             return registrarYResponder(sessionId, usuarioAutenticado, mensajeUsuario, intencion, agenteUtilizado, respuestaFinal, [], false, Date.now() - inicio);
         }
 
-        // ==========================================
-        // 2. DETECCIÓN FUERA DE ALCANCE (#24)
-        // ==========================================
+        // 3. Control de temas fuera de alcance (#24)
         const esFueraDeAlcance = /(película|pelicula|receta|chiste|canción|futbol|fútbol|clima en|juego)/i.test(msgLower);
         if (esFueraDeAlcance && !/(rrhh|recursos humanos|trabajo|permiso|politica)/i.test(msgLower)) {
             intencion = 'fuera_de_alcance';
@@ -61,9 +59,7 @@ async function procesarMensajeAgente(sessionId = 'default-session', mensajeUsuar
             return registrarYResponder(sessionId, usuarioAutenticado, mensajeUsuario, intencion, agenteUtilizado, respuestaFinal, [], false, Date.now() - inicio);
         }
 
-        // ==========================================
-        // 3. CLASIFICACIÓN DE INTENCIÓN (LLM / Reglas)
-        // ==========================================
+        // 4. Clasificación de Intención
         const promptClasificador = `Clasifica la intención de este mensaje de un empleado en exactamente UNA de estas palabras:
 - dato_personal: si pregunta por sus propios saldos de vacaciones, estado de sus solicitudes, su propia fecha de pago o su expediente.
 - politica: si pregunta por normativas, días que corresponden por ley, anticipación de trámites, licencias, teletrabajo, beneficios o códigos de conducta.
@@ -85,10 +81,7 @@ Responde ÚNICAMENTE la palabra de la intención seleccionada.`;
         else if (clasificacionTexto.includes('fuera_de_alcance')) intencion = 'fuera_de_alcance';
         else intencion = 'politica';
 
-        // ==========================================
-        // 4. ENRUTAMIENTO A AGENTES ESPECIALIZADOS
-        // ==========================================
-
+        // 5. Delegación a Agentes
         if (intencion === 'dato_personal') {
             agenteUtilizado = 'agente_datos';
             const resDatos = await ejecutarAgenteDatos(mensajeUsuario, usuarioAutenticado);
@@ -104,10 +97,7 @@ Responde ÚNICAMENTE la palabra de la intención seleccionada.`;
             }
 
         } else if (intencion === 'mixta') {
-            // Regla del PDF: El orquestador llama a ambos agentes y combina sus salidas
             agenteUtilizado = 'orquestador_mixto';
-            console.log('🔀 [Orquestador] Consulta mixta detectada. Delegando a Agente Datos y Agente Políticas...');
-
             const [resDatos, resPol] = await Promise.all([
                 ejecutarAgenteDatos(mensajeUsuario, usuarioAutenticado),
                 ejecutarAgentePoliticas(mensajeUsuario)
@@ -115,7 +105,6 @@ Responde ÚNICAMENTE la palabra de la intención seleccionada.`;
 
             documentosCitados = resPol.documentosCitados || [];
 
-            // Combinar con DeepSeek para fluidez
             const promptCombinador = `Un colaborador hizo la consulta: "${mensajeUsuario}"
 El Agente de Datos Personales respondió:
 ${resDatos.respuesta}
@@ -136,6 +125,10 @@ Combina de forma armónica ambas respuestas en un único mensaje claro, mantenie
             respuestaFinal = "Puedo orientarte con las políticas de recursos humanos y tus datos laborales en NovaTech.";
         }
 
+        // 6. Validación Final con el Agente Validador (Puntos Extra)
+        const validacion = validarRespuesta(respuestaFinal, usuarioAutenticado);
+        respuestaFinal = validacion.texto;
+
         const latenciaMs = Date.now() - inicio;
         return await registrarYResponder(sessionId, usuarioAutenticado, mensajeUsuario, intencion, agenteUtilizado, respuestaFinal, documentosCitados, escalada, latenciaMs);
 
@@ -148,7 +141,6 @@ Combina de forma armónica ambas respuestas en un único mensaje claro, mantenie
     }
 }
 
-// Registro en la tabla consultas_chat y actualización de la memoria
 async function registrarYResponder(sessionId, usuario, pregunta, intencion, agente, respuesta, docs, escalada, latenciaMs) {
     try {
         await pool.query(`
@@ -166,7 +158,7 @@ async function registrarYResponder(sessionId, usuario, pregunta, intencion, agen
             latenciaMs
         ]);
     } catch (dbErr) {
-        console.warn('No se pudo registrar la consulta en consultas_chat:', dbErr.message);
+        console.warn('No se pudo registrar en consultas_chat:', dbErr.message);
     }
 
     if (sesionesMemoria[sessionId]) {

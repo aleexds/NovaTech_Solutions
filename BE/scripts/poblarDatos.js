@@ -19,13 +19,22 @@ const nombres = [
 const departamentos = ["Tecnología", "Recursos Humanos", "Finanzas", "Operaciones", "Ventas", "Marketing", "Legal"];
 const puestos = {
   "Tecnología": ["Senior FullStack Dev", "Cloud Architect", "QA Automation", "DevOps Engineer", "Frontend Specialist"],
-  "Recursos Humanos": ["Gerente de RRHH", "Especialista de Onboarding", "Analista de Nómina", "Coordinador de Clima"],
+  "Recursos Humanos": ["Director de Personas & Cultura", "Especialista de Onboarding", "Analista de Nómina", "Coordinador de Clima"],
   "Finanzas": ["Contador Senior", "Analista Financiero", "Especialista en Tesorería"],
   "Operaciones": ["Gerente de Operaciones", "Coordinador Logístico", "Supervisor de Procesos"],
   "Ventas": ["Account Executive", "Business Developer", "Key Account Manager"],
   "Marketing": ["Growth Hacker", "Content Specialist", "Brand Manager"],
   "Legal": ["Asesor Laboral", "Compliance Officer"]
 };
+
+function generarEmail(nombre) {
+    return nombre.toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9 ]/g, '')
+        .trim()
+        .replace(/\s+/g, '.') + '@novatech.com';
+}
 
 async function poblarDatos() {
     try {
@@ -39,9 +48,15 @@ async function poblarDatos() {
             database: dbConfig.database
         });
 
-        console.log('🌱 Iniciando siembra (seeding) de al menos 50 colaboradores y 3 meses de historial...');
+        console.log('🌱 Sincronizando datos de colaboradores con campo email...');
 
-        // Desactivar temporalmente foreign keys para repoblar limpio
+        // Asegurar que la columna email existe
+        try {
+            await conn.query('ALTER TABLE colaboradores ADD COLUMN email VARCHAR(150) UNIQUE AFTER nombre;');
+        } catch (e) {
+            // Ya existe
+        }
+
         await conn.query('SET FOREIGN_KEY_CHECKS = 0');
         await conn.query('TRUNCATE TABLE solicitudes');
         await conn.query('TRUNCATE TABLE saldos_vacaciones');
@@ -52,28 +67,26 @@ async function poblarDatos() {
 
         const colaboradoresIds = [];
 
-        // 1. Insertar Colaboradores
         for (let i = 0; i < nombres.length; i++) {
             const id = `EMP-${String(i + 1).padStart(3, '0')}`;
             colaboradoresIds.push(id);
             const nombre = nombres[i];
-            const rol = (i === 0 || nombre.includes("Vargas") || nombre.includes("Valenzuela")) ? 'admin_rrhh' : 'colaborador';
+            const email = generarEmail(nombre);
+            
+            const rol = (i === 0 || nombre.includes("Vargas")) ? 'admin_rrhh' : 'colaborador';
             const dep = (rol === 'admin_rrhh') ? 'Recursos Humanos' : departamentos[i % departamentos.length];
             const pLista = puestos[dep] || ["Especialista"];
             const puesto = (rol === 'admin_rrhh') ? 'Director de Personas & Cultura' : pLista[i % pLista.length];
             
-            // Fecha ingreso escalonada en los últimos 3 años
             const diasAtras = 60 + Math.floor(Math.random() * 800);
             const fechaIngreso = new Date(Date.now() - diasAtras * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
             await conn.query(`
-                INSERT INTO colaboradores (id, nombre, departamento, puesto, fecha_ingreso, jefe_id, rol, estado)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            `, [id, nombre, dep, puesto, fechaIngreso, i === 0 ? null : 'EMP-001', rol, 'activo']);
+                INSERT INTO colaboradores (id, nombre, email, departamento, puesto, fecha_ingreso, jefe_id, rol, estado)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `, [id, nombre, email, dep, puesto, fechaIngreso, i === 0 ? null : 'EMP-001', rol, 'activo']);
 
-            // 2. Saldos de Vacaciones (incluyendo casos con más de 20 días para el riesgo de pasivo laboral del requisito)
             const diasTomados = Math.floor(Math.random() * 12);
-            // 8 colaboradores tendrán saldo mayor a 20 días
             const diasAsignados = (i % 6 === 0) ? 35 : 15;
             const diasDisponibles = diasAsignados - diasTomados;
 
@@ -82,9 +95,9 @@ async function poblarDatos() {
                 VALUES (?, '2026', ?, ?, ?)
             `, [id, diasAsignados, diasTomados, diasDisponibles]);
         }
-        console.log(`✅ ${nombres.length} colaboradores y sus saldos de vacaciones insertados.`);
+        console.log(`✅ ${nombres.length} colaboradores sembrados con emails únicos oficiales.`);
 
-        // 3. Insertar Solicitudes de los últimos 3 meses
+        // Solicitudes
         const tiposSolicitud = ['vacaciones', 'permiso_estudio', 'permiso_personal', 'duelo'];
         const estados = ['aprobada', 'aprobada', 'pendiente', 'rechazada'];
 
@@ -92,8 +105,6 @@ async function poblarDatos() {
             const colabId = colaboradoresIds[Math.floor(Math.random() * colaboradoresIds.length)];
             const tipo = tiposSolicitud[Math.floor(Math.random() * tiposSolicitud.length)];
             const estado = (i < 8) ? 'pendiente' : estados[Math.floor(Math.random() * estados.length)];
-            
-            // Días pasados dentro de los últimos 90 días (3 meses)
             const diasAtras = (estado === 'pendiente' && i < 4) ? 4 : Math.floor(Math.random() * 90);
             const fechaIni = new Date(Date.now() - diasAtras * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
             const fechaFin = new Date(Date.now() - (diasAtras - 3) * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
@@ -104,13 +115,12 @@ async function poblarDatos() {
                 VALUES (?, ?, ?, ?, ?, ?, 'EMP-001', ?)
             `, [`SOL-${String(i + 1).padStart(3, '0')}`, colabId, tipo, fechaIni, fechaFin, estado, creadaEn]);
         }
-        console.log('✅ 45 Solicitudes de los últimos 3 meses insertadas (con casos pendientes > 3 días).');
 
-        // 4. Insertar Incapacidades
+        // Incapacidades
         const entidades = ['Seguro Social (CCSS/IMSS)', 'Instituto Nacional de Seguros', 'Clínica Privada Acreditada'];
         for (let i = 0; i < 12; i++) {
             const colabId = colaboradoresIds[Math.floor(Math.random() * colaboradoresIds.length)];
-            const diasAtras = Math.floor(Math.random() * 20); // Algunas activas hoy
+            const diasAtras = Math.floor(Math.random() * 20);
             const fechaIni = new Date(Date.now() - diasAtras * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
             const duracion = 3 + Math.floor(Math.random() * 7);
 
@@ -119,9 +129,8 @@ async function poblarDatos() {
                 VALUES (?, 'Enfermedad común', ?, ?, ?)
             `, [colabId, fechaIni, duracion, entidades[i % entidades.length]]);
         }
-        console.log('✅ 12 Incapacidades médicas generadas.');
 
-        // 5. Movimientos de personal (rotación / altas de los últimos 3 meses)
+        // Movimientos
         const tiposMov = ['ingreso', 'ascenso', 'salida'];
         for (let i = 0; i < 15; i++) {
             const colabId = colaboradoresIds[Math.floor(Math.random() * colaboradoresIds.length)];
@@ -134,10 +143,9 @@ async function poblarDatos() {
                 VALUES (?, ?, ?, ?)
             `, [colabId, tipo, fecha, tipo === 'salida' ? 'Oferta externa' : (tipo === 'ascenso' ? 'Promoción por desempeño' : 'Nueva contratación')]);
         }
-        console.log('✅ 15 Movimientos de personal registrados.');
 
         await conn.end();
-        console.log('🌟 Base de datos MySQL poblada con éxito según todos los requerimientos.');
+        console.log('🌟 Base de datos actualizada con emails y datos consistentes.');
     } catch (err) {
         console.error('Error poblando MySQL:', err);
     }

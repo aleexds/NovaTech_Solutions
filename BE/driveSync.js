@@ -1,7 +1,7 @@
 const { google } = require('googleapis');
 const path = require('path');
 const { PDFParse } = require('pdf-parse');
-require('dotenv').config();
+require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 
 const KEYFILEPATH = path.resolve(__dirname, 'config', 'credentials.json');
 const SCOPES = ['https://www.googleapis.com/auth/drive.readonly'];
